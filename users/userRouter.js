@@ -42,7 +42,7 @@ router.put('/:id', validateUserId, validateUser, (req, res) => {
 
 router.post('/:id/posts', validateUserId, validatePost, (req, res) => {
   req.body.user_id = req.params.id
-  postMethods.insert(req.body)
+  userMethods.insert(req.body)
   .then(p => {
     res.status(200).json(p)})
   .catch(e => {
@@ -59,20 +59,18 @@ router.get('/:id/posts', validateUserId, (req, res) => {
 
 //custom middleware
 
-async function validateUserId(req, res, next) {
+function validateUserId(req, res, next) {
   const { id } =  req.params
 
   if (id) {
-    try {
-      req.user = await userMethods.getById(id)
-      next()
-    } catch {
-      res.status(500).json({ msg: 'Whoops, something went wrong on our side'})
-    }
+    userMethods.getById(id)
+      .then(r => { 
+        r ? next() : res.status(500).json({ msg: 'Whoops, something went wrong on our side'})
+       })
+      .catch(e=> res.status(500).json({ msg: 'Whoops, something went wrong on our side'}))
   } else {
     res.status(400).json({ msg: 'Invalid user ID'})
   }
-
 }
 
 function validateUser(req, res, next) {
